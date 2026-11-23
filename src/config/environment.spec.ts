@@ -11,6 +11,7 @@ describe('loadEnvironment', () => {
       ...required,
       PORT: 3000,
       JWT_EXPIRES_IN_SECONDS: 3600,
+      LOG_LEVEL: 'info',
       CORS_ORIGINS: 'http://localhost:5173',
       EXCHANGE_RATE_API_URL: 'https://api.apis.net.pe/v1/tipo-cambio-sunat',
       EXCHANGE_RATE_POLL_INTERVAL_MS: 30_000,
@@ -43,6 +44,10 @@ describe('loadEnvironment', () => {
 
   it.each(['http://localhost:27017', 'mongo://x', ''])('rejects the MongoDB URI "%s"', (uri) => {
     expect(() => loadEnvironment({ ...required, MONGODB_URI: uri })).toThrow('MONGODB_URI');
+  });
+
+  it('rejects an unknown log level', () => {
+    expect(() => loadEnvironment({ ...required, LOG_LEVEL: 'verbose' })).toThrow('LOG_LEVEL');
   });
 
   it('rejects a polling interval shorter than one second', () => {

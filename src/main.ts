@@ -7,7 +7,7 @@ import { createLogger, Logger } from './shared/infrastructure/logger';
 
 const registerShutdown = (server: Server, container: Container, logger: Logger): void => {
   const shutdown = (signal: string): void => {
-    logger.info(`Señal ${signal} recibida, cerrando la aplicación`);
+    logger.info('Señal recibida, cerrando la aplicación', { signal });
     container.exchangeRatePoller.stop();
     server.close(() => {
       void disconnectDatabase().finally(() => process.exit(0));
@@ -19,13 +19,16 @@ const registerShutdown = (server: Server, container: Container, logger: Logger):
 };
 
 async function bootstrap(): Promise<void> {
-  const logger = createLogger('Bootstrap');
   const config = loadEnvironmentFromFile();
+  const logger = createLogger('Bootstrap', config.LOG_LEVEL);
 
   await connectDatabase(config.MONGODB_URI);
   const container = buildContainer(config);
   const server = createApp(container, config).listen(config.PORT, () => {
-    logger.info(`API disponible en http://localhost:${config.PORT}/v1 (documentación en /docs)`);
+    logger.info('API disponible', {
+      url: `http://localhost:${config.PORT}/v1`,
+      docs: `http://localhost:${config.PORT}/docs`,
+    });
   });
 
   if (config.EXCHANGE_RATE_POLLING_ENABLED) {

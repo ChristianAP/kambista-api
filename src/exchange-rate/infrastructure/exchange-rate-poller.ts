@@ -40,10 +40,15 @@ export class ExchangeRatePoller {
   private async refresh(): Promise<void> {
     try {
       const rate = await this.refreshExchangeRate.execute();
-      this.logger.info(`Tipo de cambio actualizado: compra ${rate.buy} / venta ${rate.sell}`);
+      this.logger.info('Tipo de cambio actualizado', {
+        buy: rate.buy.toNumber(),
+        sell: rate.sell.toNumber(),
+        source: rate.source,
+        quotedOn: rate.quotedOn,
+      });
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
-      this.logger.warn(`No se pudo actualizar el tipo de cambio: ${reason}`);
+      this.logger.warn('No se pudo actualizar el tipo de cambio', { reason });
     }
   }
 }

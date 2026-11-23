@@ -97,9 +97,14 @@ export const createErrorHandler =
     }
 
     const description = describeError(error);
+    res.locals.errorCode = description.code;
 
     if (description === INTERNAL_ERROR) {
-      logger.error(`${req.method} ${req.originalUrl} falló`, error);
+      logger.error('Error inesperado al procesar la petición', error, {
+        requestId: res.locals.requestId,
+        method: req.method,
+        path: req.originalUrl,
+      });
     }
 
     const body: ApiErrorBody = {

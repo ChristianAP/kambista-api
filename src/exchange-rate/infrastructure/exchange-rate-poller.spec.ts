@@ -63,7 +63,9 @@ describe('ExchangeRatePoller', () => {
     await jest.advanceTimersByTimeAsync(0);
 
     expect(rates.items).toHaveLength(0);
-    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('timeout'));
+    expect(logger.warn).toHaveBeenCalledWith(expect.any(String), {
+      reason: expect.stringContaining('timeout'),
+    });
 
     await jest.advanceTimersByTimeAsync(INTERVAL_MS);
 

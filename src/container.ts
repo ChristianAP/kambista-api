@@ -28,6 +28,7 @@ export interface ContainerOverrides {
 export const buildContainer = (config: Environment, overrides: ContainerOverrides = {}) => {
   const clock = new SystemClock();
   const ids = new UuidIdGenerator();
+  const loggerFor = (context: string) => createLogger(context, config.LOG_LEVEL);
 
   const users = new MongoUserRepository(UserModel);
   const passwordHasher = new BcryptPasswordHasher();
@@ -49,6 +50,7 @@ export const buildContainer = (config: Environment, overrides: ContainerOverride
 
   return {
     tokens,
+    loggerFor,
     registerUser: new RegisterUser(users, passwordHasher, ids, clock),
     loginUser: new LoginUser(users, passwordHasher, tokens),
     promoteUserToAdmin: new PromoteUserToAdmin(users),
@@ -58,7 +60,7 @@ export const buildContainer = (config: Environment, overrides: ContainerOverride
     exchangeRatePoller: new ExchangeRatePoller(
       refreshExchangeRate,
       config.EXCHANGE_RATE_POLL_INTERVAL_MS,
-      createLogger('ExchangeRatePoller'),
+      loggerFor('ExchangeRatePoller'),
     ),
   };
 };

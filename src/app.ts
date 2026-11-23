@@ -9,8 +9,8 @@ import { openApiDocument } from './docs/openapi';
 import { createHealthRouter } from './health/health.router';
 import { createAuthRouter } from './identity/presentation/auth.router';
 import { authenticate } from './identity/presentation/authenticate';
-import { createLogger } from './shared/infrastructure/logger';
 import { createErrorHandler, notFoundHandler } from './shared/presentation/error-handler';
+import { requestLogger } from './shared/presentation/request-logger';
 import { createTransactionsRouter } from './transactions/presentation/transactions.router';
 
 const parseOrigins = (origins: string): string[] =>
@@ -27,6 +27,7 @@ export const createApp = (
 
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
+  app.use(requestLogger(container.loggerFor('Http')));
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
   app.use(cors({ origin: parseOrigins(config.CORS_ORIGINS) }));
   app.use(express.json());
@@ -38,7 +39,7 @@ export const createApp = (
   app.use('/v1/transactions', createTransactionsRouter(container));
 
   app.use(notFoundHandler);
-  app.use(createErrorHandler(createLogger('Http')));
+  app.use(createErrorHandler(container.loggerFor('Http')));
 
   return app;
 };
