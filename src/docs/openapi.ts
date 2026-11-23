@@ -5,6 +5,7 @@ import {
   registerBody,
   userResponse,
 } from '../identity/presentation/auth.schemas';
+import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from '../shared/domain/pagination';
 import { apiErrorSchema } from '../shared/presentation/api-error.schema';
 import {
   createTransactionBody,
@@ -19,6 +20,18 @@ const ERROR_DESCRIPTIONS: Record<number, string> = {
   409: 'Conflicto con el estado actual de los datos',
   422: 'La solicitud incumple una regla de negocio',
   503: 'Servicio temporalmente no disponible',
+};
+
+const paginationHeader = (description: string) => ({
+  description,
+  schema: { type: 'integer' },
+});
+
+const historyResponseHeaders = {
+  'X-Total-Count': paginationHeader('Total de operaciones que cumplen el filtro'),
+  'X-Page': paginationHeader('Página devuelta'),
+  'X-Limit': paginationHeader('Cantidad máxima de operaciones por página'),
+  'X-Total-Pages': paginationHeader('Total de páginas disponibles'),
 };
 
 const jsonSchema = (schema: z.ZodType, mode: SchemaMode = 'output') => {
@@ -68,6 +81,20 @@ const historyParameters = [
     required: false,
     description: 'Solo para admin. Un usuario con rol user siempre consulta su propio historial',
     schema: { type: 'string' },
+  },
+  {
+    name: 'page',
+    in: 'query',
+    required: false,
+    description: 'Número de página, empezando en 1',
+    schema: { type: 'integer', minimum: 1, default: 1 },
+  },
+  {
+    name: 'limit',
+    in: 'query',
+    required: false,
+    description: 'Operaciones por página',
+    schema: { type: 'integer', minimum: 1, maximum: MAX_PAGE_SIZE, default: DEFAULT_PAGE_SIZE },
   },
 ];
 
@@ -120,14 +147,17 @@ export const openApiDocument = {
     '/v1/transactions/history': {
       get: {
         tags: ['Transacciones'],
-        summary: 'Consulta el historial de cambios dentro de un rango de fechas',
+        summary: 'Consulta el historial de cambios dentro de un rango de fechas, paginado',
         security: protectedRoute,
         parameters: historyParameters,
         responses: {
-          200: success(
-            'Operaciones del rango, de la más reciente a la más antigua',
-            z.array(transactionResponse),
-          ),
+          200: {
+            ...success(
+              'Operaciones de la página, de la más reciente a la más antigua',
+              z.array(transactionResponse),
+            ),
+            headers: historyResponseHeaders,
+          },
           ...errors(400, 401, 422),
         },
       },

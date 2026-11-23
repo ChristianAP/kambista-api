@@ -1,4 +1,5 @@
 import { Model } from 'mongoose';
+import { Page, toPage } from '../../shared/domain/pagination';
 import { fromDecimal128, toDecimal128 } from '../../shared/infrastructure/decimal-codec';
 import { HistoryCriteria, TransactionRepository } from '../application/transaction.repository';
 import { Money } from '../domain/money';
@@ -35,12 +36,19 @@ export class MongoTransactionRepository implements TransactionRepository {
     await this.model.replaceOne({ _id: transaction.id }, toRecord(transaction), { upsert: true });
   }
 
-  async findByCriteria({ userId, range }: HistoryCriteria): Promise<Transaction[]> {
-    const records = await this.model
-      .find({ userId, createdAt: { $gte: range.from, $lte: range.to } })
-      .sort({ createdAt: -1 })
-      .lean<TransactionRecord[]>();
+  async findByCriteria({ userId, range, pagination }: HistoryCriteria): Promise<Page<Transaction>> {
+    const filter = { userId, createdAt: { $gte: range.from, $lte: range.to } };
 
-    return records.map(toEntity);
+    const [records, total] = await Promise.all([
+      this.model
+        .find(filter)
+        .sort({ createdAt: -1, _id: -1 })
+        .skip(pagination.offset)
+        .limit(pagination.limit)
+        .lean<TransactionRecord[]>(),
+      this.model.countDocuments(filter),
+    ]);
+
+    return toPage(records.map(toEntity), total, pagination);
   }
 }

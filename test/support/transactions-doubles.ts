@@ -1,3 +1,4 @@
+import { Page, toPage } from '../../src/shared/domain/pagination';
 import {
   HistoryCriteria,
   TransactionRepository,
@@ -11,8 +12,8 @@ export class InMemoryTransactionRepository implements TransactionRepository {
     this.items.push(transaction);
   }
 
-  async findByCriteria({ userId, range }: HistoryCriteria): Promise<Transaction[]> {
-    return this.items
+  async findByCriteria({ userId, range, pagination }: HistoryCriteria): Promise<Page<Transaction>> {
+    const matching = this.items
       .filter(
         (item) =>
           item.userId === userId &&
@@ -20,5 +21,11 @@ export class InMemoryTransactionRepository implements TransactionRepository {
           item.createdAt.getTime() <= range.to.getTime(),
       )
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    return toPage(
+      matching.slice(pagination.offset, pagination.offset + pagination.limit),
+      matching.length,
+      pagination,
+    );
   }
 }

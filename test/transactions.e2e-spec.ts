@@ -125,6 +125,70 @@ describe('Transactions (e2e)', () => {
       expect(body.map((item: { id: string }) => item.id)).toEqual([second.id, first.id]);
     });
 
+    describe('pagination', () => {
+      const createThree = async () => {
+        for (const monto of [10, 20, 30]) {
+          await createTransaction({ ...usdToPen, monto }).expect(201);
+        }
+      };
+
+      it('reports the totals in the response headers and keeps a plain array body', async () => {
+        await createThree();
+
+        const response = await history(`${today()}&page=1&limit=2`).expect(200);
+
+        expect(response.body.map((item: { monto: number }) => item.monto)).toEqual([30, 20]);
+        expect(response.headers).toMatchObject({
+          'x-total-count': '3',
+          'x-page': '1',
+          'x-limit': '2',
+          'x-total-pages': '2',
+        });
+      });
+
+      it('returns the remaining operations in the last page', async () => {
+        await createThree();
+
+        const response = await history(`${today()}&page=2&limit=2`).expect(200);
+
+        expect(response.body.map((item: { monto: number }) => item.monto)).toEqual([10]);
+      });
+
+      it('returns an empty page beyond the last one', async () => {
+        await createThree();
+
+        const response = await history(`${today()}&page=9&limit=2`).expect(200);
+
+        expect(response.body).toEqual([]);
+        expect(response.headers['x-total-count']).toBe('3');
+      });
+
+      it('applies a default page size', async () => {
+        await createThree();
+
+        const response = await history(today()).expect(200);
+
+        expect(response.headers).toMatchObject({ 'x-page': '1', 'x-limit': '20' });
+      });
+
+      it.each([
+        ['page zero', 'page=0'],
+        ['a negative page', 'page=-1'],
+        ['a limit above the maximum', 'limit=101'],
+        ['a limit of zero', 'limit=0'],
+      ])('rejects %s with 422', async (_description, extra) => {
+        const { body } = await history(`${today()}&${extra}`).expect(422);
+
+        expect(body.code).toBe('INVALID_PAGINATION');
+      });
+
+      it('rejects a page that is not a number with 400', async () => {
+        const { body } = await history(`${today()}&page=abc`).expect(400);
+
+        expect(body.code).toBe('VALIDATION_ERROR');
+      });
+    });
+
     it('requires both dates', async () => {
       const { body } = await history('startDate=2026-11-01').expect(400);
 

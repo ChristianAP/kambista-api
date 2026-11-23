@@ -29,6 +29,8 @@ export const historyQuery = z.object({
   startDate: dateField('startDate', 'Inicio del rango, inclusive (zona horaria de Lima)'),
   endDate: dateField('endDate', 'Fin del rango, inclusive (zona horaria de Lima)'),
   userId: z.string('userId debe ser un texto').optional(),
+  page: z.coerce.number('page debe ser un número').optional(),
+  limit: z.coerce.number('limit debe ser un número').optional(),
 });
 
 export const transactionResponse = z.object({

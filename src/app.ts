@@ -11,7 +11,10 @@ import { createAuthRouter } from './identity/presentation/auth.router';
 import { authenticate } from './identity/presentation/authenticate';
 import { createErrorHandler, notFoundHandler } from './shared/presentation/error-handler';
 import { requestLogger } from './shared/presentation/request-logger';
+import { PAGINATION_HEADERS } from './transactions/presentation/transactions.presenters';
 import { createTransactionsRouter } from './transactions/presentation/transactions.router';
+
+const EXPOSED_HEADERS = ['X-Request-Id', ...Object.values(PAGINATION_HEADERS)];
 
 const parseOrigins = (origins: string): string[] =>
   origins
@@ -29,7 +32,7 @@ export const createApp = (
 
   app.use(requestLogger(container.loggerFor('Http')));
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
-  app.use(cors({ origin: parseOrigins(config.CORS_ORIGINS) }));
+  app.use(cors({ origin: parseOrigins(config.CORS_ORIGINS), exposedHeaders: EXPOSED_HEADERS }));
   app.use(express.json());
 
   app.use('/health', createHealthRouter(isDatabaseConnected));

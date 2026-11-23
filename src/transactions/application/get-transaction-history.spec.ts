@@ -1,5 +1,6 @@
 import { buildTransaction } from '../../../test/support/builders';
 import { InMemoryTransactionRepository } from '../../../test/support/transactions-doubles';
+import { InvalidPaginationError } from '../../shared/domain/pagination.errors';
 import { Role } from '../../shared/domain/role';
 import { InvalidDateRangeError } from '../domain/transactions.errors';
 import { GetTransactionHistory } from './get-transaction-history';
@@ -36,7 +37,7 @@ const setup = async () => {
   return { getTransactionHistory: new GetTransactionHistory(transactions) };
 };
 
-const idsOf = (items: { id: string }[]) => items.map((item) => item.id);
+const idsOf = ({ items }: { items: readonly { id: string }[] }) => items.map((item) => item.id);
 
 describe('GetTransactionHistory', () => {
   it('returns the requester operations inside the range, newest first', async () => {
@@ -45,6 +46,7 @@ describe('GetTransactionHistory', () => {
     const history = await getTransactionHistory.execute({ requester: user, ...period });
 
     expect(idsOf(history)).toEqual(['mine-new', 'mine-old']);
+    expect(history.total).toBe(2);
   });
 
   it('ignores the userId filter when the requester is a regular user', async () => {
@@ -89,5 +91,44 @@ describe('GetTransactionHistory', () => {
         endDate: '2026-11-01',
       }),
     ).rejects.toThrow(InvalidDateRangeError);
+  });
+
+  describe('pagination', () => {
+    it('returns the requested page and reports the totals', async () => {
+      const { getTransactionHistory } = await setup();
+
+      const second = await getTransactionHistory.execute({
+        requester: user,
+        ...period,
+        page: 2,
+        limit: 1,
+      });
+
+      expect(idsOf(second)).toEqual(['mine-old']);
+      expect(second).toMatchObject({ total: 2, totalPages: 2 });
+      expect(second.pagination).toMatchObject({ page: 2, limit: 1 });
+    });
+
+    it('returns an empty page beyond the last one', async () => {
+      const { getTransactionHistory } = await setup();
+
+      const history = await getTransactionHistory.execute({
+        requester: user,
+        ...period,
+        page: 5,
+        limit: 1,
+      });
+
+      expect(history.items).toEqual([]);
+      expect(history.total).toBe(2);
+    });
+
+    it('rejects an invalid page size', async () => {
+      const { getTransactionHistory } = await setup();
+
+      await expect(
+        getTransactionHistory.execute({ requester: user, ...period, limit: 1000 }),
+      ).rejects.toThrow(InvalidPaginationError);
+    });
   });
 });

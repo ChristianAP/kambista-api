@@ -26,6 +26,6 @@ const transactionSchema = new Schema<TransactionRecord>(
   { collection: 'transactions', versionKey: false },
 );
 
-transactionSchema.index({ userId: 1, createdAt: -1 });
+transactionSchema.index({ userId: 1, createdAt: -1, _id: -1 });
 
 export const TransactionModel = model<TransactionRecord>('Transaction', transactionSchema);

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { currentUser } from '../../identity/presentation/authenticate';
 import { CreateTransaction } from '../application/create-transaction';
 import { GetTransactionHistory } from '../application/get-transaction-history';
-import { toTransactionResponse } from './transactions.presenters';
+import { toPaginationHeaders, toTransactionResponse } from './transactions.presenters';
 import { createTransactionBody, historyQuery } from './transactions.schemas';
 
 export interface TransactionsRouterDependencies {
@@ -29,11 +29,11 @@ export const createTransactionsRouter = ({
 
   router.get('/history', async (req, res) => {
     const query = historyQuery.parse(req.query);
-    const transactions = await getTransactionHistory.execute({
+    const page = await getTransactionHistory.execute({
       requester: currentUser(res),
       ...query,
     });
-    res.json(transactions.map(toTransactionResponse));
+    res.set(toPaginationHeaders(page)).json(page.items.map(toTransactionResponse));
   });
 
   return router;

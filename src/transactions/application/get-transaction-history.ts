@@ -1,4 +1,5 @@
 import { AuthenticatedUser } from '../../shared/domain/authenticated-user';
+import { Page, Pagination } from '../../shared/domain/pagination';
 import { Role } from '../../shared/domain/role';
 import { DateRange } from '../domain/date-range';
 import { Transaction } from '../domain/transaction';
@@ -9,15 +10,18 @@ export interface GetTransactionHistoryQuery {
   readonly startDate: string;
   readonly endDate: string;
   readonly userId?: string;
+  readonly page?: number;
+  readonly limit?: number;
 }
 
 export class GetTransactionHistory {
   constructor(private readonly transactions: TransactionRepository) {}
 
-  async execute(query: GetTransactionHistoryQuery): Promise<Transaction[]> {
+  async execute(query: GetTransactionHistoryQuery): Promise<Page<Transaction>> {
     return this.transactions.findByCriteria({
       userId: this.resolveOwner(query),
       range: DateRange.between(query.startDate, query.endDate),
+      pagination: Pagination.of(query.page, query.limit),
     });
   }
 
