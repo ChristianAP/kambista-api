@@ -10,7 +10,8 @@ describe('loadEnvironment', () => {
     expect(loadEnvironment(required)).toEqual({
       ...required,
       PORT: 3000,
-      JWT_EXPIRES_IN_SECONDS: 3600,
+      JWT_EXPIRES_IN_SECONDS: 900,
+      REFRESH_TOKEN_EXPIRES_IN_SECONDS: 604_800,
       LOGIN_MAX_FAILED_ATTEMPTS: 10,
       LOGIN_ATTEMPTS_WINDOW_SECONDS: 900,
       LOG_LEVEL: 'info',

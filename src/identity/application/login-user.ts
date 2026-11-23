@@ -1,8 +1,8 @@
 import { Email } from '../domain/email';
 import { InvalidCredentialsError } from '../domain/identity.errors';
 import { User } from '../domain/user';
+import { IssuedSession, IssueSession } from './issue-session';
 import { PasswordHasher } from './password-hasher';
-import { TokenService } from './token-service';
 import { UserRepository } from './user.repository';
 
 export interface LoginUserCommand {
@@ -10,8 +10,7 @@ export interface LoginUserCommand {
   readonly password: string;
 }
 
-export interface LoginResult {
-  readonly accessToken: string;
+export interface LoginResult extends IssuedSession {
   readonly user: User;
 }
 
@@ -19,7 +18,7 @@ export class LoginUser {
   constructor(
     private readonly users: UserRepository,
     private readonly passwordHasher: PasswordHasher,
-    private readonly tokens: TokenService,
+    private readonly sessions: IssueSession,
   ) {}
 
   async execute(command: LoginUserCommand): Promise<LoginResult> {
@@ -31,7 +30,7 @@ export class LoginUser {
       throw new InvalidCredentialsError();
     }
 
-    const accessToken = await this.tokens.issue({ id: user.id, role: user.role });
-    return { accessToken, user };
+    const session = await this.sessions.execute({ id: user.id, role: user.role });
+    return { ...session, user };
   }
 }

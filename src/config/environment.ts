@@ -6,7 +6,8 @@ const environmentSchema = z.object({
     .string('es obligatoria')
     .regex(/^mongodb(\+srv)?:\/\//, 'debe ser una URI de MongoDB válida'),
   JWT_SECRET: z.string('es obligatorio').min(32, 'debe tener al menos 32 caracteres'),
-  JWT_EXPIRES_IN_SECONDS: z.coerce.number().int().min(60).default(3600),
+  JWT_EXPIRES_IN_SECONDS: z.coerce.number().int().min(60).default(900),
+  REFRESH_TOKEN_EXPIRES_IN_SECONDS: z.coerce.number().int().min(60).default(604_800),
   LOGIN_MAX_FAILED_ATTEMPTS: z.coerce.number().int().min(1).default(10),
   LOGIN_ATTEMPTS_WINDOW_SECONDS: z.coerce.number().int().min(1).default(900),
   LOG_LEVEL: z.enum(['info', 'warn', 'error', 'silent']).default('info'),

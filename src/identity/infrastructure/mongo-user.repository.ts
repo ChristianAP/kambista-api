@@ -43,4 +43,9 @@ export class MongoUserRepository implements UserRepository {
     const record = await this.model.findOne({ email: email.value }).lean<UserRecord>();
     return record ? toEntity(record) : null;
   }
+
+  async findById(id: string): Promise<User | null> {
+    const record = await this.model.findById(id).lean<UserRecord>();
+    return record ? toEntity(record) : null;
+  }
 }

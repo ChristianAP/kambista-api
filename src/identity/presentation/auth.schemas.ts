@@ -33,6 +33,16 @@ export const loginBody = z.object(
   OBJECT_MESSAGE,
 );
 
+export const refreshBody = z.object(
+  {
+    refresh_token: z
+      .string('refresh_token es obligatorio')
+      .min(1, 'refresh_token es obligatorio')
+      .meta({ examples: ['k3Yx0n9m4gP7w2Qe1uVbTzA8dLhSjR5cFoN6iEaXyWs'] }),
+  },
+  OBJECT_MESSAGE,
+);
+
 export const userResponse = z.object({
   id: z.string().meta({ examples: ['0f8fad5b-d9cb-469f-a165-70867728950e'] }),
   nombre: z.string().meta({ examples: ['Juan Pérez'] }),
@@ -42,6 +52,7 @@ export const userResponse = z.object({
 
 export const loginResponse = z.object({
   access_token: z.string().meta({ examples: ['eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'] }),
+  refresh_token: z.string().meta({ examples: ['k3Yx0n9m4gP7w2Qe1uVbTzA8dLhSjR5cFoN6iEaXyWs'] }),
   usuario: userResponse,
 });
 

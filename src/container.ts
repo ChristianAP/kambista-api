@@ -7,15 +7,21 @@ import { CachedExchangeRateRepository } from './exchange-rate/infrastructure/cac
 import { ExchangeRateModel } from './exchange-rate/infrastructure/exchange-rate.model';
 import { ExchangeRatePoller } from './exchange-rate/infrastructure/exchange-rate-poller';
 import { MongoExchangeRateRepository } from './exchange-rate/infrastructure/mongo-exchange-rate.repository';
+import { IssueSession } from './identity/application/issue-session';
 import { LoginUser } from './identity/application/login-user';
 import { PromoteUserToAdmin } from './identity/application/promote-user-to-admin';
+import { RefreshSession } from './identity/application/refresh-session';
 import { RegisterUser } from './identity/application/register-user';
+import { RevokeSession } from './identity/application/revoke-session';
 import { BcryptPasswordHasher } from './identity/infrastructure/bcrypt-password-hasher';
+import { CryptoOpaqueTokenGenerator } from './identity/infrastructure/crypto-opaque-token.generator';
 import { JwtTokenService } from './identity/infrastructure/jwt-token-service';
+import { MongoRefreshTokenRepository } from './identity/infrastructure/mongo-refresh-token.repository';
 import { MongoUserRepository } from './identity/infrastructure/mongo-user.repository';
+import { RefreshTokenModel } from './identity/infrastructure/refresh-token.model';
 import { UserModel } from './identity/infrastructure/user.model';
-import { SystemClock } from './shared/infrastructure/system-clock';
 import { createLogger } from './shared/infrastructure/logger';
+import { SystemClock } from './shared/infrastructure/system-clock';
 import { UuidIdGenerator } from './shared/infrastructure/uuid-id-generator';
 import { CreateTransaction } from './transactions/application/create-transaction';
 import { GetTransactionHistory } from './transactions/application/get-transaction-history';
@@ -34,6 +40,16 @@ export const buildContainer = (config: Environment, overrides: ContainerOverride
   const users = new MongoUserRepository(UserModel);
   const passwordHasher = new BcryptPasswordHasher();
   const tokens = new JwtTokenService(config.JWT_SECRET, config.JWT_EXPIRES_IN_SECONDS);
+  const refreshTokens = new MongoRefreshTokenRepository(RefreshTokenModel);
+  const opaqueTokens = new CryptoOpaqueTokenGenerator();
+  const issueSession = new IssueSession(
+    tokens,
+    refreshTokens,
+    opaqueTokens,
+    ids,
+    clock,
+    config.REFRESH_TOKEN_EXPIRES_IN_SECONDS,
+  );
 
   const exchangeRates = new CachedExchangeRateRepository(
     new MongoExchangeRateRepository(ExchangeRateModel),
@@ -55,7 +71,9 @@ export const buildContainer = (config: Environment, overrides: ContainerOverride
     tokens,
     loggerFor,
     registerUser: new RegisterUser(users, passwordHasher, ids, clock),
-    loginUser: new LoginUser(users, passwordHasher, tokens),
+    loginUser: new LoginUser(users, passwordHasher, issueSession),
+    refreshSession: new RefreshSession(refreshTokens, users, issueSession, opaqueTokens, clock),
+    revokeSession: new RevokeSession(refreshTokens, opaqueTokens, clock),
     promoteUserToAdmin: new PromoteUserToAdmin(users),
     refreshExchangeRate,
     createTransaction: new CreateTransaction(getLatestExchangeRate, transactions, ids, clock),

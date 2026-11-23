@@ -3,7 +3,9 @@ import { ExchangeRateNotAvailableError } from '../../exchange-rate/domain/exchan
 import {
   EmailAlreadyRegisteredError,
   InvalidEmailError,
+  InvalidRefreshTokenError,
   InvalidTokenError,
+  RefreshTokenReusedError,
   TooManyLoginAttemptsError,
 } from '../../identity/domain/identity.errors';
 import { InvalidPaginationError } from '../domain/pagination.errors';
@@ -14,6 +16,8 @@ describe('describeError', () => {
     [new InvalidEmailError(), 422, 'INVALID_EMAIL'],
     [new EmailAlreadyRegisteredError(), 409, 'EMAIL_ALREADY_REGISTERED'],
     [new InvalidTokenError(), 401, 'INVALID_TOKEN'],
+    [new InvalidRefreshTokenError(), 401, 'INVALID_REFRESH_TOKEN'],
+    [new RefreshTokenReusedError(), 401, 'REFRESH_TOKEN_REUSED'],
     [new TooManyLoginAttemptsError(), 429, 'TOO_MANY_LOGIN_ATTEMPTS'],
     [new InvalidPaginationError('Página inválida'), 422, 'INVALID_PAGINATION'],
     [new RouteNotFoundError('GET', '/nada'), 404, 'ROUTE_NOT_FOUND'],

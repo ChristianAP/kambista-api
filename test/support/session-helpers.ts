@@ -6,6 +6,7 @@ export interface Session {
   readonly email: string;
   readonly userId: string;
   readonly token: string;
+  readonly refreshToken: string;
 }
 
 let sequence = 0;
@@ -25,7 +26,12 @@ export const logIn = async ({ http }: TestContext, email: string): Promise<Sessi
     .post('/v1/auth/login')
     .send({ email, password: PASSWORD })
     .expect(200);
-  return { email, userId: body.usuario.id, token: body.access_token };
+  return {
+    email,
+    userId: body.usuario.id,
+    token: body.access_token,
+    refreshToken: body.refresh_token,
+  };
 };
 
 export const registerUser = async (

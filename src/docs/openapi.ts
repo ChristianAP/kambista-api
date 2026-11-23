@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   loginBody,
   loginResponse,
+  refreshBody,
   registerBody,
   userResponse,
 } from '../identity/presentation/auth.schemas';
@@ -125,11 +126,36 @@ export const openApiDocument = {
     '/v1/auth/login': {
       post: {
         tags: ['Autenticación'],
-        summary: 'Inicia sesión y devuelve un access_token JWT',
+        summary: 'Inicia sesión y devuelve un access_token JWT y un refresh_token',
         requestBody: requestBody(loginBody),
         responses: {
           200: success('Sesión iniciada', loginResponse),
           ...errors(400, 401, 429),
+        },
+      },
+    },
+    '/v1/auth/refresh': {
+      post: {
+        tags: ['Autenticación'],
+        summary: 'Renueva la sesión con un refresh_token y lo rota',
+        requestBody: requestBody(refreshBody),
+        responses: {
+          200: success(
+            'Sesión renovada, el refresh_token anterior deja de ser válido',
+            loginResponse,
+          ),
+          ...errors(400, 401),
+        },
+      },
+    },
+    '/v1/auth/logout': {
+      post: {
+        tags: ['Autenticación'],
+        summary: 'Cierra la sesión revocando el refresh_token',
+        requestBody: requestBody(refreshBody),
+        responses: {
+          204: { description: 'Sesión cerrada' },
+          ...errors(400),
         },
       },
     },

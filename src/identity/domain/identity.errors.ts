@@ -46,6 +46,22 @@ export class InvalidTokenError extends AuthenticationError {
   }
 }
 
+export class InvalidRefreshTokenError extends AuthenticationError {
+  readonly code = 'INVALID_REFRESH_TOKEN';
+
+  constructor() {
+    super('El refresh token es inválido o ha expirado, inicia sesión nuevamente');
+  }
+}
+
+export class RefreshTokenReusedError extends AuthenticationError {
+  readonly code = 'REFRESH_TOKEN_REUSED';
+
+  constructor() {
+    super('Este refresh token ya fue utilizado, por seguridad se cerró la sesión');
+  }
+}
+
 export class TooManyLoginAttemptsError extends TooManyRequestsError {
   readonly code = 'TOO_MANY_LOGIN_ATTEMPTS';
 

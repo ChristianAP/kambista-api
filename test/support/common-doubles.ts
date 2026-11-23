@@ -11,6 +11,18 @@ export class FixedClock implements Clock {
   }
 }
 
+export class AdjustableClock implements Clock {
+  constructor(private current: Date = FIXED_NOW) {}
+
+  now(): Date {
+    return this.current;
+  }
+
+  advanceSeconds(seconds: number): void {
+    this.current = new Date(this.current.getTime() + seconds * 1000);
+  }
+}
+
 export class SequentialIdGenerator implements IdGenerator {
   private counter = 0;
 
