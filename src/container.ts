@@ -3,6 +3,7 @@ import { ExchangeRateProvider } from './exchange-rate/application/exchange-rate.
 import { GetLatestExchangeRate } from './exchange-rate/application/get-latest-exchange-rate';
 import { RefreshExchangeRate } from './exchange-rate/application/refresh-exchange-rate';
 import { ApisNetPeExchangeRateProvider } from './exchange-rate/infrastructure/apis-net-pe-exchange-rate.provider';
+import { CachedExchangeRateRepository } from './exchange-rate/infrastructure/cached-exchange-rate.repository';
 import { ExchangeRateModel } from './exchange-rate/infrastructure/exchange-rate.model';
 import { ExchangeRatePoller } from './exchange-rate/infrastructure/exchange-rate-poller';
 import { MongoExchangeRateRepository } from './exchange-rate/infrastructure/mongo-exchange-rate.repository';
@@ -34,7 +35,9 @@ export const buildContainer = (config: Environment, overrides: ContainerOverride
   const passwordHasher = new BcryptPasswordHasher();
   const tokens = new JwtTokenService(config.JWT_SECRET, config.JWT_EXPIRES_IN_SECONDS);
 
-  const exchangeRates = new MongoExchangeRateRepository(ExchangeRateModel);
+  const exchangeRates = new CachedExchangeRateRepository(
+    new MongoExchangeRateRepository(ExchangeRateModel),
+  );
   const exchangeRateProvider =
     overrides.exchangeRateProvider ??
     new ApisNetPeExchangeRateProvider(config.EXCHANGE_RATE_API_URL);
