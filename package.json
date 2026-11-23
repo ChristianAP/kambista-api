@@ -5,7 +5,7 @@
   "private": true,
   "license": "UNLICENSED",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19.0"
   },
   "main": "dist/main.js",
   "scripts": {
@@ -16,7 +16,7 @@
     "lint": "eslint \"{src,test}/**/*.ts\"",
     "format": "prettier --write \"{src,test}/**/*.ts\"",
     "test": "jest --selectProjects unit",
-    "test:cov": "jest --selectProjects unit --coverage",
+    "test:cov": "jest --coverage",
     "test:e2e": "jest --selectProjects e2e",
     "test:all": "jest",
     "admin:promote": "tsx src/cli/promote-admin.ts",
