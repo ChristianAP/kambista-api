@@ -4,6 +4,7 @@ import {
   EmailAlreadyRegisteredError,
   InvalidEmailError,
   InvalidTokenError,
+  TooManyLoginAttemptsError,
 } from '../../identity/domain/identity.errors';
 import { InvalidPaginationError } from '../domain/pagination.errors';
 import { RouteNotFoundError, describeError } from './error-handler';
@@ -13,6 +14,7 @@ describe('describeError', () => {
     [new InvalidEmailError(), 422, 'INVALID_EMAIL'],
     [new EmailAlreadyRegisteredError(), 409, 'EMAIL_ALREADY_REGISTERED'],
     [new InvalidTokenError(), 401, 'INVALID_TOKEN'],
+    [new TooManyLoginAttemptsError(), 429, 'TOO_MANY_LOGIN_ATTEMPTS'],
     [new InvalidPaginationError('Página inválida'), 422, 'INVALID_PAGINATION'],
     [new RouteNotFoundError('GET', '/nada'), 404, 'ROUTE_NOT_FOUND'],
     [new ExchangeRateNotAvailableError(), 503, 'EXCHANGE_RATE_NOT_AVAILABLE'],

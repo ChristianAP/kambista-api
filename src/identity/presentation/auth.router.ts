@@ -3,13 +3,17 @@ import { LoginUser } from '../application/login-user';
 import { RegisterUser } from '../application/register-user';
 import { toLoginResponse, toUserResponse } from './auth.presenters';
 import { loginBody, registerBody } from './auth.schemas';
+import { createLoginRateLimiter, LoginRateLimitOptions } from './login-rate-limiter';
 
 export interface AuthRouterDependencies {
   registerUser: RegisterUser;
   loginUser: LoginUser;
 }
 
-export const createAuthRouter = ({ registerUser, loginUser }: AuthRouterDependencies): Router => {
+export const createAuthRouter = (
+  { registerUser, loginUser }: AuthRouterDependencies,
+  loginRateLimit: LoginRateLimitOptions,
+): Router => {
   const router = Router();
 
   router.post('/register', async (req, res) => {
@@ -18,7 +22,7 @@ export const createAuthRouter = ({ registerUser, loginUser }: AuthRouterDependen
     res.status(201).json(toUserResponse(user));
   });
 
-  router.post('/login', async (req, res) => {
+  router.post('/login', createLoginRateLimiter(loginRateLimit), async (req, res) => {
     const credentials = loginBody.parse(req.body);
     const { accessToken, user } = await loginUser.execute(credentials);
     res.json(toLoginResponse(accessToken, user));

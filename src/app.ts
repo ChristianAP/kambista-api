@@ -16,16 +16,18 @@ import { createTransactionsRouter } from './transactions/presentation/transactio
 
 const EXPOSED_HEADERS = ['X-Request-Id', ...Object.values(PAGINATION_HEADERS)];
 
+export type AppConfig = Pick<
+  Environment,
+  'CORS_ORIGINS' | 'LOGIN_MAX_FAILED_ATTEMPTS' | 'LOGIN_ATTEMPTS_WINDOW_SECONDS'
+>;
+
 const parseOrigins = (origins: string): string[] =>
   origins
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
 
-export const createApp = (
-  container: Container,
-  config: Pick<Environment, 'CORS_ORIGINS'>,
-): Express => {
+export const createApp = (container: Container, config: AppConfig): Express => {
   const app = express();
 
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
@@ -36,7 +38,13 @@ export const createApp = (
   app.use(express.json());
 
   app.use('/health', createHealthRouter(isDatabaseConnected));
-  app.use('/v1/auth', createAuthRouter(container));
+  app.use(
+    '/v1/auth',
+    createAuthRouter(container, {
+      maxFailedAttempts: config.LOGIN_MAX_FAILED_ATTEMPTS,
+      windowSeconds: config.LOGIN_ATTEMPTS_WINDOW_SECONDS,
+    }),
+  );
 
   app.use('/v1', authenticate(container.tokens));
   app.use('/v1/transactions', createTransactionsRouter(container));

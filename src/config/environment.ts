@@ -7,6 +7,8 @@ const environmentSchema = z.object({
     .regex(/^mongodb(\+srv)?:\/\//, 'debe ser una URI de MongoDB válida'),
   JWT_SECRET: z.string('es obligatorio').min(32, 'debe tener al menos 32 caracteres'),
   JWT_EXPIRES_IN_SECONDS: z.coerce.number().int().min(60).default(3600),
+  LOGIN_MAX_FAILED_ATTEMPTS: z.coerce.number().int().min(1).default(10),
+  LOGIN_ATTEMPTS_WINDOW_SECONDS: z.coerce.number().int().min(1).default(900),
   LOG_LEVEL: z.enum(['info', 'warn', 'error', 'silent']).default('info'),
   CORS_ORIGINS: z.string().default('http://localhost:5173'),
   EXCHANGE_RATE_API_URL: z.url().default('https://api.apis.net.pe/v1/tipo-cambio-sunat'),

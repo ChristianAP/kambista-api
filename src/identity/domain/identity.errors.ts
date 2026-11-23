@@ -3,6 +3,7 @@ import {
   ConflictError,
   InvalidInputError,
   NotFoundError,
+  TooManyRequestsError,
 } from '../../shared/domain/domain-error';
 
 export class InvalidEmailError extends InvalidInputError {
@@ -42,6 +43,14 @@ export class InvalidTokenError extends AuthenticationError {
 
   constructor() {
     super('El token de acceso es inválido o ha expirado');
+  }
+}
+
+export class TooManyLoginAttemptsError extends TooManyRequestsError {
+  readonly code = 'TOO_MANY_LOGIN_ATTEMPTS';
+
+  constructor() {
+    super('Demasiados intentos fallidos de inicio de sesión, inténtalo de nuevo más tarde');
   }
 }
 

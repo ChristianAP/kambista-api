@@ -16,9 +16,10 @@ type SchemaMode = 'input' | 'output';
 
 const ERROR_DESCRIPTIONS: Record<number, string> = {
   400: 'Datos de entrada inválidos',
-  401: 'Token ausente, inválido o credenciales incorrectas',
+  401: 'Token ausente o inválido, o credenciales incorrectas',
   409: 'Conflicto con el estado actual de los datos',
   422: 'La solicitud incumple una regla de negocio',
+  429: 'Demasiados intentos fallidos, se informa el tiempo de espera en el header Retry-After',
   503: 'Servicio temporalmente no disponible',
 };
 
@@ -128,7 +129,7 @@ export const openApiDocument = {
         requestBody: requestBody(loginBody),
         responses: {
           200: success('Sesión iniciada', loginResponse),
-          ...errors(400, 401),
+          ...errors(400, 401, 429),
         },
       },
     },

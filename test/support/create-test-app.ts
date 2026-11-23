@@ -13,15 +13,22 @@ export interface TestContext {
   readonly close: () => Promise<void>;
 }
 
-export const createTestApp = async (
-  provider: ExchangeRateProvider = new StubExchangeRateProvider(),
-): Promise<TestContext> => {
+export interface TestAppOptions {
+  readonly provider?: ExchangeRateProvider;
+  readonly environment?: Record<string, string>;
+}
+
+export const createTestApp = async ({
+  provider = new StubExchangeRateProvider(),
+  environment = {},
+}: TestAppOptions = {}): Promise<TestContext> => {
   const mongo = await MongoMemoryServer.create();
   const config = loadEnvironment({
     MONGODB_URI: mongo.getUri('kambista-test'),
     JWT_SECRET: 'e2e-secret-with-at-least-thirty-two-characters',
     EXCHANGE_RATE_POLLING_ENABLED: 'false',
     LOG_LEVEL: 'silent',
+    ...environment,
   });
 
   await connectDatabase(config.MONGODB_URI);

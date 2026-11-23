@@ -11,6 +11,8 @@ describe('loadEnvironment', () => {
       ...required,
       PORT: 3000,
       JWT_EXPIRES_IN_SECONDS: 3600,
+      LOGIN_MAX_FAILED_ATTEMPTS: 10,
+      LOGIN_ATTEMPTS_WINDOW_SECONDS: 900,
       LOG_LEVEL: 'info',
       CORS_ORIGINS: 'http://localhost:5173',
       EXCHANGE_RATE_API_URL: 'https://api.apis.net.pe/v1/tipo-cambio-sunat',
@@ -48,6 +50,12 @@ describe('loadEnvironment', () => {
 
   it('rejects an unknown log level', () => {
     expect(() => loadEnvironment({ ...required, LOG_LEVEL: 'verbose' })).toThrow('LOG_LEVEL');
+  });
+
+  it('rejects a login limit below one attempt', () => {
+    expect(() => loadEnvironment({ ...required, LOGIN_MAX_FAILED_ATTEMPTS: '0' })).toThrow(
+      'LOGIN_MAX_FAILED_ATTEMPTS',
+    );
   });
 
   it('rejects a polling interval shorter than one second', () => {

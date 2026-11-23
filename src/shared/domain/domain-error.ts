@@ -11,4 +11,5 @@ export abstract class InvalidInputError extends DomainError {}
 export abstract class ConflictError extends DomainError {}
 export abstract class NotFoundError extends DomainError {}
 export abstract class AuthenticationError extends DomainError {}
+export abstract class TooManyRequestsError extends DomainError {}
 export abstract class ServiceUnavailableError extends DomainError {}

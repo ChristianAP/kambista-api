@@ -8,6 +8,7 @@ import {
   InvalidInputError,
   NotFoundError,
   ServiceUnavailableError,
+  TooManyRequestsError,
 } from '../domain/domain-error';
 import { Logger } from '../infrastructure/logger';
 import { ApiErrorBody } from './api-error.schema';
@@ -20,6 +21,7 @@ const STATUS_BY_ERROR_TYPE: ReadonlyArray<readonly [DomainErrorType, number]> = 
   [ConflictError, 409],
   [NotFoundError, 404],
   [AuthenticationError, 401],
+  [TooManyRequestsError, 429],
   [ServiceUnavailableError, 503],
 ];
 
